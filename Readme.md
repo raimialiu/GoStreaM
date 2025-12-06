@@ -43,7 +43,7 @@ package main
 
 import (
   "fmt"
-  "github.com/yourname/gostream/stream"
+  "github.com/raimialiu/GoStreaM/stream"
 )
 
 func main() {
