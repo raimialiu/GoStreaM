@@ -33,7 +33,7 @@ GoStream provides a fluent, chainable API for data processing with lazy evaluati
 ### Installation
 
 ```bash
-go get github.com/yourname/gostream
+go get github.com/raimialiu/GoStreaM
 ```
 
 ### Basic Usage
