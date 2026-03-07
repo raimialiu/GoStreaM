@@ -1,16 +1,23 @@
 package iterators
 
 type ChannelIterator[T any] struct {
-	value  <-chan T
-	buffer T
-	done   bool // to check if channel is not closed
+	ch       <-chan T
+	buffer   T
+	hasNext  bool
+	computed bool
 }
 
 func AsChannelIterator[T any](channel <-chan T) *ChannelIterator[T] {
 	return &ChannelIterator[T]{
-		value: channel,
-		done:  false,
+		ch: channel,
 	}
+}
+
+func (it *ChannelIterator[T]) HasNext() bool {
+	if !it.computed {
+		it.readNext()
+	}
+	return it.hasNext
 }
 
 func (it *ChannelIterator[T]) Next() T {
@@ -20,30 +27,24 @@ func (it *ChannelIterator[T]) Next() T {
 	}
 
 	value := it.buffer
-	it.readFromChannel()
-
+	it.computed = false
+	it.hasNext = false
 	return value
 }
 
-func (it *ChannelIterator[T]) readFromChannel() T {
-	if it.done {
-		var zero T
-		return zero
+func (it *ChannelIterator[T]) readNext() {
+	value, ok := <-it.ch
+	if ok {
+		it.buffer = value
+		it.hasNext = true
+	} else {
+		it.hasNext = false
 	}
-
-	value, ok := <-it.value
-	if !ok {
-		it.done = true
-	}
-
-	return value
-}
-
-func (it *ChannelIterator[T]) HasNext() bool {
-	return !it.done
+	it.computed = true
 }
 
 func (it *ChannelIterator[T]) Close() error {
-	it.done = true
+	it.hasNext = false
+	it.computed = true
 	return nil
 }

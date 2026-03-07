@@ -1,6 +1,6 @@
 package operations
 
-import "gostream/stream/iterators"
+import "github.com/raimialiu/gostream/stream/iterators"
 
 // Generic map operation that can transform types
 type GenericMapOperation[T, R any] struct {

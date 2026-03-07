@@ -1,26 +1,23 @@
 package iterators
 
-import "reflect"
-
-// MapperIterator transforms elements from type T to type R
 type MapperIterator[T, R any] struct {
-	mapper  func(T) R
-	source  Iterator[T]
-	next    R
-	hasNext bool
+	mapper   func(T) R
+	source   Iterator[T]
+	next     R
+	hasNext  bool
+	computed bool
 }
 
 func AsMapperIterator[T, R any](mapper func(T) R, source Iterator[T]) *MapperIterator[T, R] {
 	return &MapperIterator[T, R]{
-		mapper:  mapper,
-		hasNext: false,
-		source:  source,
+		mapper: mapper,
+		source: source,
 	}
 }
 
 func (it *MapperIterator[T, R]) HasNext() bool {
-	if !it.hasNext {
-		it.mapNext()
+	if !it.computed {
+		it.computeNext()
 	}
 	return it.hasNext
 }
@@ -31,25 +28,21 @@ func (it *MapperIterator[T, R]) Next() R {
 		return zero
 	}
 
-	current := it.next
-	it.hasNext = false // Reset for next iteration
-	return current
+	result := it.next
+	it.computed = false
+	it.hasNext = false
+	return result
 }
 
-func (it *MapperIterator[T, R]) mapNext() {
-	var zero R
-	for it.source.HasNext() {
+func (it *MapperIterator[T, R]) computeNext() {
+	if it.source.HasNext() {
 		sourceItem := it.source.Next()
-		mapperResult := it.mapper(sourceItem)
-
-		// Check if the mapped result is not zero value
-		if !reflect.DeepEqual(mapperResult, zero) {
-			it.next = mapperResult
-			it.hasNext = true
-			return
-		}
+		it.next = it.mapper(sourceItem)
+		it.hasNext = true
+	} else {
+		it.hasNext = false
 	}
-	it.hasNext = false
+	it.computed = true
 }
 
 func (it *MapperIterator[T, R]) Close() error {

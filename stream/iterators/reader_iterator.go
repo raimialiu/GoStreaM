@@ -8,38 +8,7 @@ type ReaderIterator[T any] struct {
 	nextData   string
 	closer     io.Closer
 	bufferSize int
-}
-
-func (r ReaderIterator[T]) HasNext() bool {
-	if !r.hasNext {
-		r.readNext()
-	}
-
-	return r.hasNext
-}
-
-func (r ReaderIterator[T]) Next() string {
-	if r.HasNext() {
-		return r.nextData
-	}
-
-	return ""
-}
-
-func (r ReaderIterator[T]) readNext() {
-	buf := make([]byte, r.bufferSize)
-	vl, err := r.rd.Read(buf)
-
-	r.hasNext = err == nil && vl > 0
-	r.nextData = string(buf[:vl])
-}
-
-func (r ReaderIterator[T]) Close() error {
-	if r.closer != nil {
-		return r.closer.Close()
-	}
-
-	return nil
+	computed   bool
 }
 
 func AsReaderIterator[T any](r io.Reader, bufferSize int) *ReaderIterator[T] {
@@ -53,4 +22,40 @@ func AsReaderIterator[T any](r io.Reader, bufferSize int) *ReaderIterator[T] {
 		bufferSize: bufferSize,
 		closer:     closerInstance,
 	}
+}
+
+func (r *ReaderIterator[T]) HasNext() bool {
+	if !r.computed {
+		r.readNext()
+	}
+	return r.hasNext
+}
+
+func (r *ReaderIterator[T]) Next() string {
+	if !r.HasNext() {
+		return ""
+	}
+
+	result := r.nextData
+	r.computed = false
+	r.hasNext = false
+	return result
+}
+
+func (r *ReaderIterator[T]) readNext() {
+	buf := make([]byte, r.bufferSize)
+	n, err := r.rd.Read(buf)
+
+	r.hasNext = err == nil && n > 0
+	if r.hasNext {
+		r.nextData = string(buf[:n])
+	}
+	r.computed = true
+}
+
+func (r *ReaderIterator[T]) Close() error {
+	if r.closer != nil {
+		return r.closer.Close()
+	}
+	return nil
 }

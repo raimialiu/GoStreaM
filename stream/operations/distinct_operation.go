@@ -1,6 +1,6 @@
 package operations
 
-import "gostream/stream/iterators"
+import "github.com/raimialiu/gostream/stream/iterators"
 
 type DistinctOperation[T any] struct {
 	source iterators.Iterator[T]

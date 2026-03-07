@@ -1,23 +1,34 @@
 package iterators
 
 type iterateIterator[T any] struct {
-	current T
-	hasNext func(T) bool
-	next    func(T) T
-	first   bool
+	current     T
+	hasNextFn   func(T) bool
+	nextFn      func(T) T
+	started     bool
+	nextVal     T
+	hasComputed bool
+	hasMore     bool
 }
 
 func AsIterateIterator[T any](seed T, hasNext func(T) bool, next func(T) T) *iterateIterator[T] {
 	return &iterateIterator[T]{
-		current: seed,
-		hasNext: hasNext,
-		next:    next,
-		first:   true,
+		current:   seed,
+		hasNextFn: hasNext,
+		nextFn:    next,
+		started:   false,
 	}
 }
 
 func (it *iterateIterator[T]) HasNext() bool {
-	return it.hasNext(it.current)
+	if !it.started {
+		return it.hasNextFn(it.current)
+	}
+	if !it.hasComputed {
+		it.nextVal = it.nextFn(it.current)
+		it.hasMore = it.hasNextFn(it.nextVal)
+		it.hasComputed = true
+	}
+	return it.hasMore
 }
 
 func (it *iterateIterator[T]) Next() T {
@@ -26,12 +37,13 @@ func (it *iterateIterator[T]) Next() T {
 		return zero
 	}
 
-	if it.first {
-		it.first = false
+	if !it.started {
+		it.started = true
 		return it.current
 	}
 
-	it.current = it.next(it.current)
+	it.current = it.nextVal
+	it.hasComputed = false
 	return it.current
 }
 

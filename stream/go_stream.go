@@ -2,29 +2,31 @@ package stream
 
 import (
 	"context"
-	"gostream/stream/iterators"
-	operations2 "gostream/stream/operations"
-	"gostream/stream/types"
+	"github.com/raimialiu/gostream/stream/iterators"
+	operations2 "github.com/raimialiu/gostream/stream/operations"
+	"github.com/raimialiu/gostream/stream/types"
 	"io"
 	"sync"
 )
 
-type (
-	GoStream[T any] struct {
-		iterator   iterators.Iterator[T]
-		operations []operations2.StreamOperation[T]
+type GoStream[T any] struct {
+	iterator   iterators.Iterator[T]
+	iterators  []iterators.Iterator[T]
+	operations []operations2.StreamOperation[T]
+	parallel   bool
+	closed     bool
+	mu         sync.Mutex
+	ctx        context.Context
+}
 
-		// parallel indicates if this stream should use parallel processing
-		parallel bool
+func (g *GoStream[T]) WithContext(ctx context.Context) *GoStream[T] {
+	g.ctx = ctx
+	return g
+}
 
-		// closed indicates if the stream has been closed
-		closed bool
-
-		mu sync.Mutex
-
-		ctx context.Context
-	}
-)
+func (g *GoStream[T]) Iterators() []iterators.Iterator[T] {
+	return g.iterators
+}
 
 func (s *GoStream[T]) withOperations(operations ...operations2.StreamOperation[T]) *GoStream[T] {
 	s.mu.Lock()
@@ -38,15 +40,22 @@ func (s *GoStream[T]) withOperation(operations operations2.StreamOperation[T]) *
 }
 
 func newGoStream[T any](iterator iterators.Iterator[T]) *GoStream[T] {
+	iters := make([]iterators.Iterator[T], 0)
+	iters = append(iters, iterator)
 	return &GoStream[T]{
-		iterator: iterator,
-		parallel: false,
-		closed:   false,
+		iterator:  iterator,
+		iterators: iters,
+		parallel:  false,
+		closed:    false,
 	}
 }
 
 func From[T any](slice []T) *GoStream[T] {
 	return newGoStream(iterators.AsListIterator[T](slice...))
+}
+
+func New[T any]() *GoStream[T] {
+	return Empty[T]()
 }
 
 func Of[T any](items ...T) *GoStream[T] {
@@ -115,4 +124,39 @@ func FromChannel[T any](channel <-chan T) *GoStream[T] {
 
 func FromFile(path string) *GoStream[string] {
 	return newGoStream(iterators.AsFileIterator(path))
+}
+
+func Concat[T any](streams ...*GoStream[T]) *GoStream[T] {
+	if len(streams) == 0 {
+		return Empty[T]()
+	}
+	result := streams[0]
+	for _, s := range streams[1:] {
+		result.iterators = append(result.iterators, s.iterators...)
+	}
+	return result
+}
+
+func Chunk[T any](s *GoStream[T], size int) *GoStream[[]T] {
+	items := s.collect()
+	var chunks [][]T
+	for i := 0; i < len(items); i += size {
+		end := i + size
+		if end > len(items) {
+			end = len(items)
+		}
+		chunks = append(chunks, items[i:end])
+	}
+	return From(chunks)
+}
+
+func Window[T any](s *GoStream[T], size int) *GoStream[[]T] {
+	items := s.collect()
+	var windows [][]T
+	for i := 0; i <= len(items)-size; i++ {
+		window := make([]T, size)
+		copy(window, items[i:i+size])
+		windows = append(windows, window)
+	}
+	return From(windows)
 }

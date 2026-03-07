@@ -21,7 +21,7 @@ func (it *GeneratorIterator[T]) WithNextArgs(args ...interface{}) *GeneratorIter
 	return it
 }
 
-// Will not execut the function logic, but setup the arguments till the next time you call Next
+// Will not execute the function logic, but setup the arguments till the next time you call Next
 func (it *GeneratorIterator[T]) WithArgs(args ...interface{}) *GeneratorIterator[T] {
 	it.valueArgs = append(it.valueArgs, args...)
 	return it

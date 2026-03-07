@@ -1,12 +1,11 @@
 package iterators
 
-import "gostream/stream/delegates"
+import "github.com/raimialiu/gostream/stream/delegates"
 
 type FilterIterator[T any] struct {
 	predicate delegates.Predicate[T]
 	source    Iterator[T]
 	next      T
-	done      bool
 	hasNext   bool
 	computed  bool
 }
@@ -21,7 +20,7 @@ func AsFilterIterator[T any](predicate delegates.Predicate[T], source Iterator[T
 }
 
 func (it *FilterIterator[T]) HasNext() bool {
-	if !it.hasNext {
+	if !it.computed {
 		it.computeNext()
 	}
 	return it.hasNext
@@ -35,6 +34,7 @@ func (it *FilterIterator[T]) Next() T {
 
 	result := it.next
 	it.computed = false
+	it.hasNext = false
 	return result
 }
 

@@ -1,6 +1,6 @@
 package operations
 
-import "gostream/stream/iterators"
+import "github.com/raimialiu/gostream/stream/iterators"
 
 type StreamOperation[T any] interface {
 	// CanFuse returns true if this operation can be fused with the next

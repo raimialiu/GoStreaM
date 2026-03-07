@@ -1,6 +1,6 @@
 package operations
 
-import "gostream/stream/iterators"
+import "github.com/raimialiu/gostream/stream/iterators"
 
 type DistinctByOperation[T any] struct {
 	fieldFunc func(T) interface{}

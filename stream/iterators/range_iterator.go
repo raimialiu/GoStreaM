@@ -1,6 +1,6 @@
 package iterators
 
-import "gostream/stream/types"
+import "github.com/raimialiu/gostream/stream/types"
 
 type RangeIterator[T types.Numeric] struct {
 	step  int

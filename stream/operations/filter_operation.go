@@ -1,8 +1,8 @@
 package operations
 
 import (
-	"gostream/stream/delegates"
-	"gostream/stream/iterators"
+	"github.com/raimialiu/gostream/stream/delegates"
+	"github.com/raimialiu/gostream/stream/iterators"
 )
 
 type FilterOperation[T any] struct {
