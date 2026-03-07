@@ -15,7 +15,3 @@ func (f FlatMapOperation[T]) CanFuse(next StreamOperation[T]) bool { return true
 func (f FlatMapOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iterator[T] {
 	return iterators.AsFlatMapIterator(source, f.mapper)
 }
-
-func (f FlatMapOperation[T]) ApplyFunc(func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	panic("not implemented")
-}

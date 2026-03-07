@@ -21,8 +21,3 @@ func (f FilterOperation[T]) CanFuse(next StreamOperation[T]) bool {
 func (f FilterOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iterator[T] {
 	return iterators.AsFilterIterator[T](f.predicate, source)
 }
-
-func (f FilterOperation[T]) ApplyFunc(func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	//TODO implement me
-	panic("implement me")
-}

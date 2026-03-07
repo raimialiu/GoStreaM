@@ -15,7 +15,3 @@ func (t TakeWhileOperation[T]) CanFuse(next StreamOperation[T]) bool { return tr
 func (t TakeWhileOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iterator[T] {
 	return iterators.AsTakeWhileIterator(source, t.predicate)
 }
-
-func (t TakeWhileOperation[T]) ApplyFunc(func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	panic("not implemented")
-}

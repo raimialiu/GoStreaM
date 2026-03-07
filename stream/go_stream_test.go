@@ -1,6 +1,8 @@
 package stream
 
 import (
+	"github.com/raimialiu/gostream/stream/collectors"
+	"github.com/raimialiu/gostream/stream/iterators"
 	"testing"
 )
 
@@ -514,6 +516,61 @@ func TestClose(t *testing.T) {
 		}
 	}()
 	s.ToList()
+}
+
+// ========== Collect + Custom Extensibility ==========
+
+func TestCollectWithCollector(t *testing.T) {
+	s := From([]int{1, 2, 3, 4, 5})
+	result := Collect(s, collectors.Counting[int]())
+	if result != 5 {
+		t.Errorf("expected 5, got %d", result)
+	}
+}
+
+func TestCollectJoining(t *testing.T) {
+	s := From([]string{"a", "b", "c"})
+	result := Collect(s, collectors.Joining(", "))
+	if result != "a, b, c" {
+		t.Errorf("expected 'a, b, c', got '%s'", result)
+	}
+}
+
+func TestCollectGroupingBy(t *testing.T) {
+	s := From([]int{1, 2, 3, 4, 5, 6})
+	result := Collect(s, collectors.GroupingBy[int, int](func(n int) int { return n % 2 }))
+	if len(result) != 2 {
+		t.Errorf("expected 2 groups, got %d", len(result))
+	}
+}
+
+func TestApplyCustomOperation(t *testing.T) {
+	// Custom operation: double each element using ApplyIterator
+	result := From([]int{1, 2, 3}).
+		ApplyIterator(func(iter iterators.Iterator[int]) iterators.Iterator[int] {
+			var items []int
+			for iter.HasNext() {
+				items = append(items, iter.Next()*2)
+			}
+			return iterators.AsListIterator(items...)
+		}).
+		ToList()
+	assertSliceEqual(t, []int{2, 4, 6}, result)
+}
+
+func TestTransform(t *testing.T) {
+	// Reusable pipeline fragment
+	topThreeEvens := func(s *GoStream[int]) *GoStream[int] {
+		return s.Filter(func(n int) bool { return n%2 == 0 }).Take(3)
+	}
+	result := From([]int{1, 2, 3, 4, 5, 6, 7, 8}).Transform(topThreeEvens).ToList()
+	assertSliceEqual(t, []int{2, 4, 6}, result)
+}
+
+func TestFromIterator(t *testing.T) {
+	iter := iterators.AsListIterator(10, 20, 30)
+	result := FromIterator[int](iter).ToList()
+	assertSliceEqual(t, []int{10, 20, 30}, result)
 }
 
 // ========== Helpers ==========

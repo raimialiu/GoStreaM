@@ -39,11 +39,6 @@ func (f InterfaceMapOperation[T]) Apply(source iterators.Iterator[T]) iterators.
 	}
 }
 
-func (f InterfaceMapOperation[T]) ApplyFunc(func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	//TODO implement me
-	panic("implement me")
-}
-
 // Helper iterator that performs type assertion
 type TypeAssertingIterator[T any] struct {
 	source iterators.Iterator[interface{}]

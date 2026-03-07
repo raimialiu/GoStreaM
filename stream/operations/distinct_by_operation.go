@@ -19,8 +19,3 @@ func (d DistinctByOperation[T]) CanFuse(next StreamOperation[T]) bool {
 func (d DistinctByOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iterator[T] {
 	return iterators.AsDistinctByIterator(source, d.fieldFunc)
 }
-
-func (d DistinctByOperation[T]) ApplyFunc(f func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	//TODO implement me
-	panic("implement me")
-}

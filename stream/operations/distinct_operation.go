@@ -14,11 +14,6 @@ func (d DistinctOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iter
 	return iterators.AsDistinctIterator[T](source)
 }
 
-func (d DistinctOperation[T]) ApplyFunc(f func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	//TODO implement me
-	panic("implement me")
-}
-
 func AsDistinct[T any]() *DistinctOperation[T] {
 	return &DistinctOperation[T]{}
 }

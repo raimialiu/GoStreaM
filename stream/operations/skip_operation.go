@@ -15,7 +15,3 @@ func (s SkipOperation[T]) CanFuse(next StreamOperation[T]) bool { return true }
 func (s SkipOperation[T]) Apply(source iterators.Iterator[T]) iterators.Iterator[T] {
 	return iterators.AsSkipIterator(source, s.count)
 }
-
-func (s SkipOperation[T]) ApplyFunc(func(args ...interface{}) interface{}) iterators.Iterator[T] {
-	panic("not implemented")
-}
